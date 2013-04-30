@@ -16,18 +16,20 @@ public class DatabaseManager {
 	 * store and access sequences based on give Handles,
 	 * with given offsets and lengths.
 	 */
-	RandomAccessFile file;
+	private RandomAccessFile file;
 
 	/**
 	 * Linked List for keeping track of all free memory
 	 * blocks.  Each block is represented by a Handle,
 	 * with a given offset and length.
 	 */
-	LinkedList<Handle> free;
+	private LinkedList<Handle> free;
 
 	/**
 	 * Basic constructor for the DatabaseManager class.
 	 * Will initialize all member fields appropriately.
+	 * 
+	 * @param fileName - the name of the file for our database
 	 */
 	public DatabaseManager(String fileName) {
 		try {

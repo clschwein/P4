@@ -1,32 +1,128 @@
-// TODO Javadoc
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+/**
+ * This class represents a hash table compatible with
+ * disk operations.  Basically, the table has some
+ * number of buckets, with a size given as a parameter
+ * in the constructor as a multiple of 32.  This is
+ * because each bucket is 512 bytes large, so it will
+ * contain 32 entries.  The function sfold, given in
+ * the spec on scholar, is used to determine the index
+ * in the hash table.
+ * 
+ * @author Chris Schweinhart (schwein)
+ * @author Nate Kibler (nkibler7)
+ */
 public class HashTable {
 	
-	// TODO Private member fields w/ Javadoc
+	/**
+	 * File pointer to our byte array on disk.  Used to
+	 * store and access sequences based on give Handles,
+	 * with given offsets and lengths.
+	 */
+	private RandomAccessFile file;
 	
-	// TODO Javadoc
-	public HashTable(String fileName, int size) {
-		// TODO Implement
+	/**
+	 * Integer variable designed to hold the size of the
+	 * hash table.  It will be a multiple of 32, as each
+	 * bucket must hold 32 values.
+	 */
+	private int size;
+	
+	/**
+	 * Basic constructor for the HashTable class.
+	 * Will initialize all member fields appropriately.
+	 * 
+	 * @param fileName - the name of the file for our hash table
+	 * @param sz - the size of our hash table, multiple of 32
+	 */
+	public HashTable(String fileName, int sz) {
+		try {
+			file = new RandomAccessFile(fileName, "rw");
+			// Make sure we are overwriting file.
+			file.setLength(0);
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not find/create file.");
+			System.exit(0);
+		} catch (IOException e) {
+			System.err.println("Could not overwrite file.");
+			System.exit(0);
+		}
+		
+		size = sz;
 	}
 	
-	// TODO Javadoc
+	/**
+	 * Method to insert the given sequence ID into the
+	 * first available slot.  Uses sfold to determine
+	 * the hash table index, and linear probing to
+	 * resolve collisions.  If the bucket is full, then
+	 * the method will return false and fail to insert
+	 * the sequence ID to the hash table.
+	 * 
+	 * @param sequenceID - the sequence ID to insert
+	 * @param IDHandle - the associated handle for the ID
+	 * @param entryHandle - the associated handle for the entry
+	 * @return - true if successful, false otherwise
+	 */
 	public boolean insert(String sequenceID, Handle IDHandle, Handle entryHandle) {
 		// TODO Implement
 		return false;
 	}
 	
-	// TODO Javadoc
+	/**
+	 * Retrieves the associated ID handle for the sequence
+	 * ID.  Uses the offset to determine the linear
+	 * probing offset for sequential searching.
+	 * 
+	 * For example, using "ACGT" and 0 as parameters
+	 * will return the handle associated with the sfold
+	 * of "ACGT".  However, using "ACGT" and 2 will give
+	 * the handle at index sfold("ACGT") + 2.
+	 * 
+	 * @param sequenceID - the sequence ID to fetch
+	 * @param offset - the linear probing offset
+	 * @return - the ID handle for our sequence ID
+	 */
 	public Handle getIDHandle(String sequenceID, int offset) {
 		// TODO Implement
 		return null;
 	}
 	
-	// TODO Javadoc
+	/**
+	 * Retrieves the associated entry handle for the
+	 * sequence ID.  Uses the offset to determine the
+	 * linear probing offset for sequential searching.
+	 * 
+	 * For example, using "ACGT" and 0 as parameters
+	 * will return the handle associated with the sfold
+	 * of "ACGT".  However, using "ACGT" and 2 will give
+	 * the handle at index sfold("ACGT") + 2.
+	 * 
+	 * @param sequenceID - the sequence ID to fetch
+	 * @param offset - the linear probing offset
+	 * @return - the entry handle for our sequence ID
+	 */
 	public Handle getEntryHandle(String sequenceID, int offset) {
 		// TODO Implement
 		return null;
 	}
 	
-	// TODO Javadoc
+	/**
+	 * Removes both the ID and entry handles for the given
+	 * sequence ID.  Uses the offset to determine the
+	 * linear probing offset for sequential searching.
+	 * 
+	 * For example, using "ACGT" and 0 as parameters
+	 * will return the handle associated with the sfold
+	 * of "ACGT".  However, using "ACGT" and 2 will give
+	 * the handle at index sfold("ACGT") + 2.
+	 * 
+	 * @param sequenceID - the sequence ID to remove
+	 * @param offset - the linear probing offset
+	 */
 	public void remove(String sequenceID, int offset) {
 		// TODO Implement
 	}
@@ -53,9 +149,9 @@ public class HashTable {
 	 * @param M - the size of the hash table
 	 * @return - the index for the hash table
 	 */
-	public int sfold(String s, int M) {
+	long sfold(String s, int M) {
 		int intLength = s.length() / 4;
-		int sum = 0;
+		long sum = 0;
 		for (int j = 0; j < intLength; j++) {
 			char c[] = s.substring(j * 4, (j * 4) + 4).toCharArray();
 			long mult = 1;
@@ -64,15 +160,15 @@ public class HashTable {
 				mult *= 256;
 			}
 		}
-		
+
 		char c[] = s.substring(intLength * 4).toCharArray();
 		long mult = 1;
 		for (int k = 0; k < c.length; k++) {
-		  sum += c[k] * mult;
-		  mult *= 256;
+			sum += c[k] * mult;
+			mult *= 256;
 		}
-		
+
 		sum = (sum * sum) >> 8;
-		return (Math.abs(sum) % M);
+		return(Math.abs(sum) % M);
 	}
 }

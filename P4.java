@@ -34,6 +34,11 @@ import java.util.Scanner;
  * class and database manager.  Fourth, it outputs appropriate errors
  * and prints.
  * 
+ * This project was completed on May 2, 2013.  It was developed on
+ * Windows 7, using the Eclipse IDE, and complied with the standard
+ * Java Programming Language Compiler (javac), from the Java Development
+ * Kit.
+ * 
  * @author Chris Schweinhart (schwein)
  * @author Nate Kibler (nkibler7)
  */
@@ -52,7 +57,7 @@ public class P4 {
 	
 	/**
 	 * Additional string patterns for result matching.  These are
-	 * used for parsing the search results from the DNA Tree to use
+	 * used for parsing the search results from the hash table to use
 	 * with the database manager.
 	 */
 	private static final String KEY_PATTERN = "^Key: [ACGT]+$";
@@ -178,8 +183,25 @@ public class P4 {
 			return;
 		}
 		
+		// Get ID from table
+		int count = 0;
+		Handle IDHandle = table.getIDHandle(sequenceID, count);
+		String currentID = dbm.getEntry(IDHandle);
+		while (IDHandle != null && !currentID.equals(sequenceID)) {
+			count++;
+			IDHandle = table.getIDHandle(sequenceID, count);
+			currentID = dbm.getEntry(IDHandle);
+		}
+		
+		// Check if it is already in the table
+		if (IDHandle != null) {
+			System.out.println("Sequence " + sequenceID + " already in table.");
+			System.out.println();
+			return;
+		}
+		
 		// Add both to the dbm
-		Handle IDHandle = dbm.insert(sequenceID, sequenceID.length());
+		IDHandle = dbm.insert(sequenceID, sequenceID.length());
 		Handle entryHandle = dbm.insert(entry, length);
 		
 		// Add both to the table
