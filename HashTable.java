@@ -68,7 +68,25 @@ public class HashTable {
 	 * @return - true if successful, false otherwise
 	 */
 	public boolean insert(String sequenceID, Handle IDHandle, Handle entryHandle) {
-		// TODO Implement
+		long idx = sfold(sequenceID, size);
+		for (int i = 0; i < 32; i++) {
+			if (getIDHandle(sequenceID, i) == null) {
+				long writePos = idx + i;
+				if (i >= 32 - (idx % 32)) {
+					writePos -= 32;
+				}
+				try {
+					file.seek(writePos * 16);
+					file.writeInt(IDHandle.getOffset());
+					file.writeInt(IDHandle.getLength());
+					file.writeInt(entryHandle.getOffset());
+					file.writeInt(entryHandle.getLength());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return true;
+			}
+		}
 		return false;
 	}
 	
@@ -87,8 +105,24 @@ public class HashTable {
 	 * @return - the ID handle for our sequence ID
 	 */
 	public Handle getIDHandle(String sequenceID, int offset) {
-		// TODO Implement
-		return null;
+		long sfold = sfold(sequenceID, size);
+		long idx = sfold + offset;
+		if (offset >= 32 - (sfold % 32)) {
+			idx -= 32;
+		}
+		Handle retHandle = null;
+		try {
+			if (idx * 16 > file.length()) {
+				return null;
+			}
+			file.seek(idx * 16);
+			int off = file.readInt();
+			int length = file.readInt();
+			retHandle = new Handle(off, length);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return retHandle;
 	}
 	
 	/**
@@ -106,19 +140,27 @@ public class HashTable {
 	 * @return - the entry handle for our sequence ID
 	 */
 	public Handle getEntryHandle(String sequenceID, int offset) {
-		// TODO Implement
-		return null;
+		long sfold = sfold(sequenceID, size);
+		long idx = sfold + offset;
+		if (offset >= 32 - (sfold % 32)) {
+			idx -= 32;
+		}
+		Handle retHandle = null;
+		try {
+			file.seek(idx * 16 + 8);
+			int off = file.readInt();
+			int length = file.readInt();
+			retHandle = new Handle(off, length);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return retHandle;
 	}
 	
 	/**
 	 * Removes both the ID and entry handles for the given
 	 * sequence ID.  Uses the offset to determine the
 	 * linear probing offset for sequential searching.
-	 * 
-	 * For example, using "ACGT" and 0 as parameters
-	 * will return the handle associated with the sfold
-	 * of "ACGT".  However, using "ACGT" and 2 will give
-	 * the handle at index sfold("ACGT") + 2.
 	 * 
 	 * @param sequenceID - the sequence ID to remove
 	 * @param offset - the linear probing offset
