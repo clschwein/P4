@@ -118,57 +118,28 @@ public class HashTable {
 	 * @param offset - the linear probing offset
 	 * @return - the ID handle for our sequence ID
 	 */
-	public Handle getIDHandle(String sequenceID, int offset) {
+	private Handle[] getHandles(String sequenceID, int offset) {
 		long sfold = sfold(sequenceID, size);
 		long idx = sfold + offset;
 		if (offset >= 32 - (sfold % 32)) {
 			idx -= 32;
 		}
-		Handle retHandle = null;
+		Handle[] handles = null;
 		try {
 			if (idx * 16 > file.length()) {
 				return null;
 			}
 			file.seek(idx * 16);
-			int off = file.readInt();
-			int length = file.readInt();
-			retHandle = new Handle(off, length);
+			int idOff = file.readInt();
+			int idLength = file.readInt();
+			int entryOff = file.readInt();
+			int entryLength = file.readInt();
+			handles = new Handle[]{new Handle(idOff, idLength), 
+					new Handle(entryOff, entryLength)};
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return retHandle;
-	}
-	
-	/**
-	 * Retrieves the associated entry handle for the
-	 * sequence ID.  Uses the offset to determine the
-	 * linear probing offset for sequential searching.
-	 * 
-	 * For example, using "ACGT" and 0 as parameters
-	 * will return the handle associated with the sfold
-	 * of "ACGT".  However, using "ACGT" and 2 will give
-	 * the handle at index sfold("ACGT") + 2.
-	 * 
-	 * @param sequenceID - the sequence ID to fetch
-	 * @param offset - the linear probing offset
-	 * @return - the entry handle for our sequence ID
-	 */
-	public Handle getEntryHandle(String sequenceID, int offset) {
-		long sfold = sfold(sequenceID, size);
-		long idx = sfold + offset;
-		if (offset >= 32 - (sfold % 32)) {
-			idx -= 32;
-		}
-		Handle retHandle = null;
-		try {
-			file.seek(idx * 16 + 8);
-			int off = file.readInt();
-			int length = file.readInt();
-			retHandle = new Handle(off, length);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return retHandle;
+		return handles;
 	}
 	
 	/**
@@ -207,7 +178,7 @@ public class HashTable {
 	 * @return - both the id and entry handles
 	 */
 	public Handle[] search(String sequenceID) {
-		// TODO Implement
+		
 		return null;
 	}
 	
