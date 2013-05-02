@@ -2,7 +2,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Scanner;
 
 // On my honor:
 //
@@ -54,14 +53,6 @@ public class P4 {
 	private static final String REMOVE_PATTERN = "^ *(remove|REMOVE) *[ACGT]+ *$";
 	private static final String PRINT_PATTERN = "^ *(print|PRINT) *$";
 	private static final String SEARCH_PATTERN = "^ *(search|SEARCH) *[ACGT]+ *$";
-	
-	/**
-	 * Additional string patterns for result matching.  These are
-	 * used for parsing the search results from the hash table to use
-	 * with the database manager.
-	 */
-	private static final String KEY_PATTERN = "^Key: [ACGT]+$";
-	private static final String HANDLE_PATTERN = "^\\[[0-9]+, [0-9]+\\]$";
 	
 	/**
 	 * Member field for HashTable table.  This table represents the
@@ -159,7 +150,7 @@ public class P4 {
 			System.out.println("Error reading from file.");
 			System.exit(0);
 		} catch (Exception e) {
-			System.out.println("Incorrect file formatting.");
+			e.printStackTrace();
 			System.exit(0);
 		}
 	}
@@ -252,38 +243,8 @@ public class P4 {
 	 * memory blocks.
 	 */
 	private static void print() {
-		// Search the table for handles
-		Scanner scan = new Scanner(table.toString());
-		String output = scan.nextLine() + "\n";
-
-		// Augment output with results from dbm
-		String entry;
-		int offset, length;
-		Handle handle;
-		
-		while (scan.hasNextLine()) {
-			entry = scan.nextLine();
-			
-			if (entry.matches(KEY_PATTERN)) {
-				output += entry + "\n";
-			} else if (entry.matches(HANDLE_PATTERN)) {
-				
-				// Parse out offset and length
-				offset = Integer.parseInt(entry.substring(entry.indexOf('[') + 1, entry.indexOf(',')));
-				length = Integer.parseInt(entry.substring(entry.indexOf(',') + 2, entry.indexOf(']')));
-				
-				// Create handle and use it to query database
-				handle = new Handle(offset, length);
-				output += dbm.getEntry(handle) + ": ";
-			} else {
-				continue;
-			}
-		}
-		
-		scan.close();
-
 		// Output the table
-		System.out.println(output.substring(0, output.length() - 1));
+		System.out.println(table);
 		System.out.println();
 		
 		// Output free blocks

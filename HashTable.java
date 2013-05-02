@@ -44,6 +44,12 @@ public class HashTable {
 	private DatabaseManager dbm;
 	
 	/**
+	 * JAVA DOC
+	 */
+	private static final Handle ZERO_HANDLE = new Handle(0, 0);
+	private static final Handle GRAVE_HANDLE = new Handle(Integer.MAX_VALUE, Integer.MAX_VALUE);
+	
+	/**
 	 * Basic constructor for the HashTable class.
 	 * Will initialize all member fields appropriately.
 	 * 
@@ -84,7 +90,9 @@ public class HashTable {
 	public boolean insert(String sequenceID, Handle IDHandle, Handle entryHandle) {
 		long idx = sfold(sequenceID, size);
 		for (int i = 0; i < 32; i++) {
-			if (getIDHandle(sequenceID, i) == null) {
+			Handle[] handles = getHandles(sequenceID, i);
+			if (handles != null &&
+				(handles[0].equals(ZERO_HANDLE) || handles[0].equals(GRAVE_HANDLE))) {
 				long writePos = idx + i;
 				if (i >= 32 - (idx % 32)) {
 					writePos -= 32;
@@ -97,6 +105,7 @@ public class HashTable {
 					file.writeInt(entryHandle.getLength());
 				} catch (IOException e) {
 					e.printStackTrace();
+					System.exit(0);
 				}
 				return true;
 			}
@@ -138,6 +147,7 @@ public class HashTable {
 					new Handle(entryOff, entryLength)};
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(0);
 		}
 		return handles;
 	}
@@ -146,6 +156,7 @@ public class HashTable {
 	 * Removes both the ID and entry handles for the given
 	 * sequence ID.  Uses the offset to determine the
 	 * linear probing offset for sequential searching.
+	 * Sets the table locations to be a grave stone.
 	 * 
 	 * @param sequenceID - the sequence ID to remove
 	 * @param offset - the linear probing offset
@@ -163,8 +174,30 @@ public class HashTable {
 	 * @return - all elements stored in hash table
 	 */
 	public String toString() {
-		// TODO Implement
-		return "NYI";
+		String output = "SequenceIDs:";
+		int idOff, idLength, entryOff, entryLength;
+		Handle[] handles;
+		
+		for (int i = 0; i < size; i++) {
+			try {
+			    file.seek(i * 16);
+				idOff = file.readInt();
+				idLength = file.readInt();
+				entryOff = file.readInt();
+				entryLength = file.readInt();
+				handles = new Handle[]{new Handle(idOff, idLength), 
+						new Handle(entryOff, entryLength)};
+				if (!handles[0].equals(ZERO_HANDLE) && !handles[0].equals(GRAVE_HANDLE)) {
+					String sequenceID = dbm.getEntry(handles[0]);
+					output += sequenceID + ": hash slot [" + i + "]\n";
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(0);
+			}
+		}
+		
+		return output.substring(0, output.length());
 	}
 	
 	/**
@@ -178,7 +211,15 @@ public class HashTable {
 	 * @return - both the id and entry handles
 	 */
 	public Handle[] search(String sequenceID) {
-		
+		for (int i = 0; i < 32; i++) {
+			Handle[] handles = getHandles(sequenceID, i);
+			if (handles != null && !handles[0].equals(ZERO_HANDLE)) {
+				String id = dbm.getEntry(handles[0]);
+				if (id.equals(sequenceID)) {
+					return handles;
+				}
+			}
+		}
 		return null;
 	}
 	

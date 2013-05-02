@@ -54,4 +54,15 @@ public class Handle {
 	public String toString() {
 		return "[" + offset + ", " + length + "]";
 	}
+	
+	/**
+	 * Method to compare two handle objects to
+	 * determine if they are equal or not.
+	 * 
+	 * @param other - the other Handle for comparison
+	 * @return - true if equal, false otherwise
+	 */
+	public boolean equals(Handle other) {
+		return offset == other.getOffset() && length == other.getLength();
+	}
 }
