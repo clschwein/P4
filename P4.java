@@ -102,8 +102,8 @@ public class P4 {
 			System.exit(0);
 		}
 		
-		table = new HashTable(args[1], Integer.parseInt(args[2]));
 		dbm = new DatabaseManager(args[3]);
+		table = new HashTable(args[1], Integer.parseInt(args[2]), dbm);
 		
 		runCommands(args[0]);
 	}
@@ -184,33 +184,27 @@ public class P4 {
 		}
 		
 		// Get ID from table
-		int count = 0;
-		Handle IDHandle = table.getIDHandle(sequenceID, count);
-		String currentID = dbm.getEntry(IDHandle);
-		while (IDHandle != null && !currentID.equals(sequenceID)) {
-			count++;
-			IDHandle = table.getIDHandle(sequenceID, count);
-			currentID = dbm.getEntry(IDHandle);
-		}
+		Handle[] handles = table.search(sequenceID);
 		
 		// Check if it is already in the table
-		if (IDHandle != null) {
+		if (handles != null) {
 			System.out.println("Sequence " + sequenceID + " already in table.");
 			System.out.println();
 			return;
 		}
 		
 		// Add both to the dbm
-		IDHandle = dbm.insert(sequenceID, sequenceID.length());
-		Handle entryHandle = dbm.insert(entry, length);
+		handles = new Handle[2];
+		handles[0] = dbm.insert(sequenceID, sequenceID.length());
+		handles[1] = dbm.insert(entry, length);
 		
 		// Add both to the table
-		boolean result = table.insert(sequenceID, IDHandle, entryHandle);
+		boolean result = table.insert(sequenceID, handles[0], handles[1]);
 
 		// Check if the table could take them
 		if(!result) {
-			dbm.remove(entryHandle);
-			dbm.remove(IDHandle);
+			dbm.remove(handles[0]);
+			dbm.remove(handles[1]);
 			System.out.println("SequenceID " + sequenceID + " cannot be stored in hash table.");
 		} else {
 			System.out.println("SequenceID " + sequenceID + " inserted in hash table.");
@@ -229,30 +223,22 @@ public class P4 {
 	 */
 	private static void remove(String sequenceID) {
 		// Get ID from table
-		int count = 0;
-		Handle IDHandle = table.getIDHandle(sequenceID, count);
-		String currentID = dbm.getEntry(IDHandle);
-		while (IDHandle != null && !currentID.equals(sequenceID)) {
-			count++;
-			IDHandle = table.getIDHandle(sequenceID, count);
-			currentID = dbm.getEntry(IDHandle);
-		}
+		Handle[] handles = table.search(sequenceID);
 		
 		// Check if it wasn't in the table
-		if (IDHandle == null) {
+		if (handles == null) {
 			System.out.println("Sequence " + sequenceID + " not found.");
 			System.out.println();
 			return;
 		}
 		
 		// Get entry from table
-		Handle entryHandle = table.getEntryHandle(sequenceID, count);
-		String entry = dbm.getEntry(entryHandle);
+		String entry = dbm.getEntry(handles[1]);
 		
 		// Remove sequenceID and entry from table and dbm
-		table.remove(sequenceID, count);
-		dbm.remove(IDHandle);
-		dbm.remove(entryHandle);
+		table.remove(sequenceID);
+		dbm.remove(handles[0]);
+		dbm.remove(handles[1]);
 		System.out.println("Sequence Removed " + sequenceID + ":");
 		System.out.println(entry);
 		System.out.println();
@@ -317,25 +303,17 @@ public class P4 {
 	 */
 	private static void search(String sequenceID) {
 		// Get ID from table
-		int count = 0;
-		Handle IDHandle = table.getIDHandle(sequenceID, count);
-		String currentID = dbm.getEntry(IDHandle);
-		while (IDHandle != null && !currentID.equals(sequenceID)) {
-			count++;
-			IDHandle = table.getIDHandle(sequenceID, count);
-			currentID = dbm.getEntry(IDHandle);
-		}
+		Handle[] handles = table.search(sequenceID);
 		
 		// Check if it wasn't in the table
-		if (IDHandle == null) {
+		if (handles == null) {
 			System.out.println("SequenceID " + sequenceID + " not found.");
 			System.out.println();
 			return;
 		}
 		
 		// Get entry from table
-		Handle entryHandle = table.getEntryHandle(sequenceID, count);
-		String entry = dbm.getEntry(entryHandle);
+		String entry = dbm.getEntry(handles[1]);
 
 		System.out.println("Sequence found: " + entry);
 		System.out.println();

@@ -32,13 +32,26 @@ public class HashTable {
 	private int size;
 	
 	/**
+	 * This is the database manager for our project.
+	 * We need to keep track of it in the hash table
+	 * because sequence ID's used for searching are
+	 * stored in the database instead of in the table
+	 * itself.  Although this does not follow the best
+	 * clean design, it works better than attempting
+	 * to mediate between the dbm and the table in the
+	 * main program.
+	 */
+	private DatabaseManager dbm;
+	
+	/**
 	 * Basic constructor for the HashTable class.
 	 * Will initialize all member fields appropriately.
 	 * 
 	 * @param fileName - the name of the file for our hash table
 	 * @param sz - the size of our hash table, multiple of 32
+	 * @param manager - the database manager for our entries
 	 */
-	public HashTable(String fileName, int sz) {
+	public HashTable(String fileName, int sz, DatabaseManager manager) {
 		try {
 			file = new RandomAccessFile(fileName, "rw");
 			// Make sure we are overwriting file.
@@ -52,6 +65,7 @@ public class HashTable {
 		}
 		
 		size = sz;
+		dbm = manager;
 	}
 	
 	/**
@@ -165,7 +179,7 @@ public class HashTable {
 	 * @param sequenceID - the sequence ID to remove
 	 * @param offset - the linear probing offset
 	 */
-	public void remove(String sequenceID, int offset) {
+	public void remove(String sequenceID) {
 		// TODO Implement
 	}
 	
@@ -180,6 +194,21 @@ public class HashTable {
 	public String toString() {
 		// TODO Implement
 		return "NYI";
+	}
+	
+	/**
+	 * This method will take the given sequence ID and
+	 * search the hash table for the entry that corresponds
+	 * to our ID.  Uses sfold to find the initial index,
+	 * then uses linear probing to continue the search.
+	 * Returns null if nothing is found.
+	 * 
+	 * @param sequenceID - the sequence ID to search for
+	 * @return - both the id and entry handles
+	 */
+	public Handle[] search(String sequenceID) {
+		// TODO Implement
+		return null;
 	}
 	
 	/**
