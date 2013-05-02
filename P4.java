@@ -47,13 +47,13 @@ public class P4 {
 	/**
 	 * Constant string patterns for command matching.  These are
 	 * used for regular expression matching with the commands
-	 * given by the input file.  Since Java uses case-insensitive
-	 * regex, the patterns/commands are shown here to be uppercase.
+	 * given by the input file.  Java does not use case-insensitive
+	 * RegEx, you liars.
 	 */
-	private static final String INSERT_PATTERN = "^ *INSERT *[ACGT]+ *[0-9]+ *$";
-	private static final String REMOVE_PATTERN = "^ *REMOVE *[ACGT]+ *$";
-	private static final String PRINT_PATTERN = "^ *PRINT *$";
-	private static final String SEARCH_PATTERN = "^ *SEARCH *[ACGT]+ *$";
+	private static final String INSERT_PATTERN = "^ *(insert|INSERT) *[ACGT]+ *[0-9]+ *$";
+	private static final String REMOVE_PATTERN = "^ *(remove|REMOVE) *[ACGT]+ *$";
+	private static final String PRINT_PATTERN = "^ *(print|PRINT) *$";
+	private static final String SEARCH_PATTERN = "^ *(search|SEARCH) *[ACGT]+ *$";
 	
 	/**
 	 * Additional string patterns for result matching.  These are
