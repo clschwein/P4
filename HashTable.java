@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -62,6 +63,7 @@ public class HashTable {
 			file = new RandomAccessFile(fileName, "rw");
 			// Make sure we are overwriting file.
 			file.setLength(0);
+			file.setLength(sz * 16);
 		} catch (FileNotFoundException e) {
 			System.err.println("Could not find/create file.");
 			System.exit(0);
@@ -145,6 +147,8 @@ public class HashTable {
 			int entryLength = file.readInt();
 			handles = new Handle[]{new Handle(idOff, idLength), 
 					new Handle(entryOff, entryLength)};
+		} catch (EOFException e) {
+			return null;
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(0);
@@ -162,7 +166,27 @@ public class HashTable {
 	 * @param offset - the linear probing offset
 	 */
 	public void remove(String sequenceID) {
-		// TODO Implement
+		for (int i = 0; i < 32; i++) {
+			Handle[] handles = getHandles(sequenceID, i);
+			if (handles != null && !handles[0].equals(ZERO_HANDLE)) {
+				String id = dbm.getEntry(handles[0]);
+				if (id.equals(sequenceID)) {
+					long sfold = sfold(sequenceID, size);
+					long idx = sfold + i;
+					if (i >= 32 - (sfold % 32)) {
+						idx -= 32;
+					}
+					try {
+						file.seek(idx * 16);
+						for (int j = 0; j < 4; j++)
+							file.writeInt(Integer.MAX_VALUE);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(-1);
+					}
+				}
+			}
+		}
 	}
 	
 	/**
@@ -180,6 +204,9 @@ public class HashTable {
 		
 		for (int i = 0; i < size; i++) {
 			try {
+				if (i * 16 >= file.length()) {
+					return "";
+				}
 			    file.seek(i * 16);
 				idOff = file.readInt();
 				idLength = file.readInt();
@@ -213,6 +240,9 @@ public class HashTable {
 	public Handle[] search(String sequenceID) {
 		for (int i = 0; i < 32; i++) {
 			Handle[] handles = getHandles(sequenceID, i);
+			if (handles[0].equals(GRAVE_HANDLE)) {
+				continue;
+			}
 			if (handles != null && !handles[0].equals(ZERO_HANDLE)) {
 				String id = dbm.getEntry(handles[0]);
 				if (id.equals(sequenceID)) {
