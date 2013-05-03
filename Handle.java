@@ -46,6 +46,16 @@ public class Handle {
 	}
 	
 	/**
+	 * Method to automate calculation of
+	 * the number of bytes.
+	 * 
+	 * @return - the number of bytes needed
+	 */
+	public int getBytes() {
+		return (length + 3) / 4;
+	}
+	
+	/**
 	 * Method to create a string representation of
 	 * the Handle.  Puts it in [offset, length] format.
 	 * 

@@ -245,7 +245,6 @@ public class P4 {
 	private static void print() {
 		// Output the table
 		System.out.println(table);
-		System.out.println();
 		
 		// Output free blocks
 		System.out.println(dbm);

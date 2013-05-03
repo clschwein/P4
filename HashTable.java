@@ -168,7 +168,8 @@ public class HashTable {
 	public void remove(String sequenceID) {
 		for (int i = 0; i < 32; i++) {
 			Handle[] handles = getHandles(sequenceID, i);
-			if (handles != null && !handles[0].equals(ZERO_HANDLE)) {
+			if (handles != null && !handles[0].equals(ZERO_HANDLE)
+				&& !handles[0].equals(GRAVE_HANDLE)) {
 				String id = dbm.getEntry(handles[0]);
 				if (id.equals(sequenceID)) {
 					long sfold = sfold(sequenceID, size);

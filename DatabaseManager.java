@@ -64,7 +64,7 @@ public class DatabaseManager {
 		// Check for any free blocks with sufficient size
 		for (Handle freeBlock: free) {
 			int offset = freeBlock.getOffset();
-			if (freeBlock.getLength() >= bytesNeeded) {
+			if (freeBlock.getBytes() >= bytesNeeded) {
 				// Attempt to write to the free block
 				try {
 					file.seek(offset);
@@ -76,13 +76,13 @@ public class DatabaseManager {
 				}
 				
 				// Clean up list of free blocks
-				if (freeBlock.getLength() == bytesNeeded) {
+				if (freeBlock.getBytes() == bytesNeeded) {
 					free.remove(freeBlock);
 				}
 				else {
-					free.set(free.indexOf(freeBlock), new Handle(offset + bytesNeeded, freeBlock.getLength() - bytesNeeded));
+					free.set(free.indexOf(freeBlock), new Handle(offset + bytesNeeded, freeBlock.getBytes() - bytesNeeded));
 				}
-				return new Handle(offset, bytesNeeded);
+				return new Handle(offset, length);
 			}
 		}
 		
@@ -107,7 +107,7 @@ public class DatabaseManager {
 			e.printStackTrace();
 		}
 		
-		return new Handle(oldLength, bytesNeeded);
+		return new Handle(oldLength, length);
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class DatabaseManager {
 	private Handle freeBlockAtEnd() {
 		for (Handle h: free) {
 			try {
-				if (file.length() - h.getLength() == h.getOffset()) {
+				if (file.length() - h.getBytes() == h.getOffset()) {
 					return h;
 				}
 			} catch (IOException e) {
@@ -222,10 +222,10 @@ public class DatabaseManager {
 			Handle current = free.get(i), next = free.get(i + 1);
 			
 			// If they are adjacent, merge them together
-			if (current.getOffset() + current.getLength() == next.getOffset()) {
-				int newLength = current.getLength() + next.getLength();
+			if (current.getOffset() + current.getBytes() == next.getOffset()) {
+				int newLength = current.getBytes() + next.getBytes();
 				free.remove(next);
-				free.set(i, new Handle(current.getOffset(), newLength));
+				free.set(i, new Handle(current.getOffset(), newLength * 4));
 				i--;
 			}
 		}
@@ -242,7 +242,7 @@ public class DatabaseManager {
 	 */
 	public String getEntry(Handle handle) {
 		// Fetch the bytes from the file
-		byte[] bytes = new byte[handle.getLength()];
+		byte[] bytes = new byte[handle.getBytes()];
 		try {
 			file.seek(handle.getOffset());
 			file.read(bytes);
@@ -253,7 +253,7 @@ public class DatabaseManager {
 		
 		// Convert the bytes to a string sequence
 		String output = "";
-		for (byte b: bytes) {
+		for (byte b : bytes) {
 			output += getStrFromBin(b);
 		}
 		//TODO: Read below
@@ -264,7 +264,7 @@ public class DatabaseManager {
 		 * fit in a byte. So we need to come up with a way to pass the sequence
 		 * length in this method.
 		 */
-		return output;
+		return output.substring(0, handle.getLength());
 	}
 
 	/**
@@ -311,7 +311,7 @@ public class DatabaseManager {
 		for (Handle handle : free) {
 			output += "\n[Block " + count + "]";
 			output += " Starting byte location: " + handle.getOffset();
-			output += ", Size: " + handle.getLength() + " byte(s)";
+			output += ", Size: " + handle.getBytes() + " byte(s)";
 			count++;
 		}
 		
