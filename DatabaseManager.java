@@ -256,7 +256,14 @@ public class DatabaseManager {
 		for (byte b: bytes) {
 			output += getStrFromBin(b);
 		}
-		
+		//TODO: Read below
+		/*
+		 * The issue here is that the given handle only has the number of bytes
+		 * needed to store the sequence, not the actual sequence length. Thus,
+		 * we don't know how many letters to actually interpret since 4 letters
+		 * fit in a byte. So we need to come up with a way to pass the sequence
+		 * length in this method.
+		 */
 		return output;
 	}
 
