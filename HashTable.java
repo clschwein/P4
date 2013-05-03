@@ -135,7 +135,7 @@ public class HashTable {
 		if (offset >= 32 - (sfold % 32)) {
 			idx -= 32;
 		}
-		Handle[] handles = null;
+		Handle[] handles = {null, null};
 		try {
 			if (idx * 16 > file.length()) {
 				return null;
@@ -145,8 +145,8 @@ public class HashTable {
 			int idLength = file.readInt();
 			int entryOff = file.readInt();
 			int entryLength = file.readInt();
-			handles = new Handle[]{new Handle(idOff, idLength), 
-					new Handle(entryOff, entryLength)};
+			handles[0] = new Handle(idOff, idLength);
+			handles[1] = new Handle(entryOff, entryLength);
 		} catch (EOFException e) {
 			return null;
 		} catch (IOException e) {
@@ -198,15 +198,12 @@ public class HashTable {
 	 * @return - all elements stored in hash table
 	 */
 	public String toString() {
-		String output = "SequenceIDs:";
+		String output = "SequenceIDs:\n";
 		int idOff, idLength, entryOff, entryLength;
 		Handle[] handles;
 		
 		for (int i = 0; i < size; i++) {
 			try {
-				if (i * 16 >= file.length()) {
-					return "";
-				}
 			    file.seek(i * 16);
 				idOff = file.readInt();
 				idLength = file.readInt();
@@ -243,7 +240,10 @@ public class HashTable {
 			if (handles[0].equals(GRAVE_HANDLE)) {
 				continue;
 			}
-			if (handles != null && !handles[0].equals(ZERO_HANDLE)) {
+			if (handles[0].equals(ZERO_HANDLE)) {
+				break;
+			}
+			if (handles != null) {
 				String id = dbm.getEntry(handles[0]);
 				if (id.equals(sequenceID)) {
 					return handles;
